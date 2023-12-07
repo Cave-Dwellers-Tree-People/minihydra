@@ -1,3 +1,4 @@
+<img width="50%" alt="logo" src="https://github.com/Cave-Dwellers-Tree-People/minihydra/assets/153214101/8907d6da-e65b-4ca6-a1a9-4f154a4b719b">
 
 ```console
 pip install minihydra
@@ -127,5 +128,7 @@ For deeper documentation, [leave an issue]() / please consider [sponsoring](http
 
 [//]: # (project directory inference, instantiation tinkering inference, portals, pseudonyms)
 
+<img width="60%" alt="logo" src="https://github.com/Cave-Dwellers-Tree-People/minihydra/assets/153214101/0ba65a1c-fa62-41a2-bfe3-77358146f18e">
 
 [Licensed under the MIT license.](MIT_LICENSE)
+
