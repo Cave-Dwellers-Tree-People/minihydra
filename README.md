@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
 **Further features include literals, function calls, instantiation, imports, interpolation, custom grammars, expanding module and yaml search paths, project directory inference, instantiation tinkering-syntax inference, portals, and pseudonyms.**
 
-For deeper documentation, please consider [sponsoring](https://github.com/sponsors/AGI-init).
+For deeper documentation, please consider [sponsoring](https://github.com/sponsors/Cave-Dwellers-Tree-People).
 
 [//]: # (:fleur_de_lis:)
 
