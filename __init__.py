@@ -31,16 +31,18 @@ yaml_search_paths = [app, cwd]  # List of paths to search for yamls in
 module_paths = [app, cwd]  # List of paths to instantiate modules from
 added_modules = {}  # Name: module pairs to instantiate from
 
-task_dirs = ['', 'task']  # Extra directories where tasks can be searched
+task_dirs = ['', 'task/']  # Extra directories where tasks can be searched
 
 log_dir = None
 
 
-def get_module(_target_, paths=None, modules=None, recurse=False):
+def get_module(_target_, paths=None, modules=None, recurse=False, try_again=False):
     if callable(_target_):
         return _target_
 
-    paths = set(list(paths or []) + module_paths)
+    # paths = set(list(paths or []) + module_paths)
+    # TODO Recently changed to this
+    paths = set(list(paths or []) + [path if '/' in path else path.replace('.', '/') for path in module_paths])
 
     if modules is None:
         modules = Args()
@@ -114,6 +116,15 @@ def get_module(_target_, paths=None, modules=None, recurse=False):
                         sys.modules[path] = module
                         break
         if module is None:
+            # Try one more possibility (_target_ refers to modules in an __init__.py file)
+            if not try_again:
+                # TODO Can make even more general by iterating through different depths of _target_ and module_names
+                #     Currently supports the second-to-last being an __init__.py file
+                _target_, *module_names = _target_.split('.')
+                module = get_module(_target_, paths, modules, recurse, try_again=True)
+                for name in module_names:
+                    module = getattr(module, name)
+                return module
             raise FileNotFoundError(f'Could not find path {path}. Search paths include: {paths}')
         else:
             # Return the relevant sub-module
@@ -201,9 +212,12 @@ def valid_path(path, dir_path=False, module_path=True, module=True, _modules_=No
             pass
 
     if module_path and not truth and path.count('.') > 0:
-        *root, file, _ = path.replace('.', '/').rsplit('/', 2)
+        # *root, file, _ = path.replace('.', '/').rsplit('/', 2)
+        *root, file, _ = path.replace('.', '.' if '/' in path else '/').rsplit('/', 2)  # TODO Recently changed to this
         root = root[0].strip('/') + '/' if root else ''
         for base in module_paths:
+            if '/' not in base:
+                base = base.replace('.', '/')  # TODO Recently added this
             try:
                 truth = os.path.exists(base + '/' + root + file + '.py')
             except FileNotFoundError:
@@ -306,8 +320,10 @@ def recursive_Args(args):
 
 def recursive_update(original, update, _target_inference=True):
     for key, value in update.items():
-        if isinstance(value, (Args, dict)) and key in original and isinstance(original[key], (Args, dict)):
+        if isinstance(value, (Args, dict)) and key in original and isinstance(original[key], (Args, dict)) and value:
             original[key].update(recursive_update(original[key], value))
+            # TODO Ideally, {...} would override, while .x= or -->x: would update.
+            #      How to parse {...} specially? For now, just checking non-empty via "and value".
         elif key in original and isinstance(original[key], (Args, dict)) and '_target_' in original[key] \
                 and not (isinstance(value, (dict, Args)) and '_target_' in value) and _target_inference:
             original[key]['_target_'] = value  # Infer value as _target_
@@ -526,6 +542,9 @@ grammar = []  # List of funcs
 def interpolate(arg, args=None, **kwargs):
     if isinstance(arg, Args):
         recursive_update(arg, kwargs)  # Note: Doesn't create new dicts if pre-existing
+    # Perhaps instead do:
+    # for key, value in kwargs.items():
+    #     arg[key] = value
 
     if args is None:
         args = arg
