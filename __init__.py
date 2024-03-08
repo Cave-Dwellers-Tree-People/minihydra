@@ -40,8 +40,6 @@ def get_module(_target_, paths=None, modules=None, recurse=False, try_again=Fals
     if callable(_target_):
         return _target_
 
-    # paths = set(list(paths or []) + module_paths)
-    # TODO Recently changed to this
     paths = set(list(paths or []) + [path if '/' in path else path.replace('.', '/') for path in module_paths])
 
     if modules is None:
@@ -212,12 +210,11 @@ def valid_path(path, dir_path=False, module_path=True, module=True, _modules_=No
             pass
 
     if module_path and not truth and path.count('.') > 0:
-        # *root, file, _ = path.replace('.', '/').rsplit('/', 2)
-        *root, file, _ = path.replace('.', '.' if '/' in path else '/').rsplit('/', 2)  # TODO Recently changed to this
+        *root, file, _ = path.replace('.', '.' if '/' in path else '/').rsplit('/', 2)
         root = root[0].strip('/') + '/' if root else ''
         for base in module_paths:
             if '/' not in base:
-                base = base.replace('.', '/')  # TODO Recently added this
+                base = base.replace('.', '/')
             try:
                 truth = os.path.exists(base + '/' + root + file + '.py')
             except FileNotFoundError:
